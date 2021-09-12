@@ -1,12 +1,15 @@
 package basic.pizza.model;
 
-import basic.pizza.annotation.Factory;
+
+import basic.milktea.model.MilkTea;
+import milktea.annotation.Factory;
+
+@Factory( )
+public class Tiramisu implements MilkTea {
 
 
-@Factory(type=Tiramisu.class, id="Tiramisu")
-public class Tiramisu implements Meal {
     @Override
-    public float getPrice() {
-        return 4.5f;
+    public double price() {
+        return 9.5;
     }
 }

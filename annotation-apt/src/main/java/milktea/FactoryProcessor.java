@@ -3,25 +3,25 @@ package milktea;
 import com.google.auto.service.AutoService;
 
 import milktea.annotation.Factory;
-import milktea.annotation.MilkTea;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.Modifier;
 import javax.lang.model.element.PackageElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import javax.tools.Diagnostic;
+
 import javax.tools.JavaFileObject;
 import java.io.BufferedWriter;
-import java.io.File;
+
 import java.io.IOException;
 import java.util.*;
 
-@AutoService(Processor.class)
-public class MilkTeaProcessor2 extends AbstractProcessor {
+
+public class FactoryProcessor extends AbstractProcessor {
     private Filer filer;
     private Messager messager;
     private Elements elements;
@@ -33,13 +33,16 @@ public class MilkTeaProcessor2 extends AbstractProcessor {
     BufferedWriter bufferedWriter = null;
     JavaFileObject builderClass = null;
     PackageElement packageElement;
+    Element superTypeElement = null;
+    TypeElement typeElement = null;
 
 
     private List<CodeModel> codeModels = new ArrayList<>();
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        System.out.println("getSupportedAnnotationTypes");
+
+
         Set<String> supportTypes = new HashSet<>();
         String type = Factory.class.getCanonicalName();
         supportTypes.add(type);
@@ -104,20 +107,28 @@ public class MilkTeaProcessor2 extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         //RoundEnvironment和上面的ProcessingEnvironment可能是差不多的，都没什么用处
         //通常用法
-        Set<? extends Element> elements = roundEnv.getElementsAnnotatedWith(Factory.class);
+
 
         int count = 0;
         for (Element element : roundEnv.getElementsAnnotatedWith(Factory.class)) {
             if (count == 0) {
-                packageElement= (PackageElement) element.getEnclosingElement();
+                packageElement = (PackageElement) element.getEnclosingElement();
                 count++;
+            }
+
+            typeElement = (TypeElement) element;
+
+            //获取注解类的父类https://stackoverflow.com/questions/30616589/how-to-get-the-super-class-name-in-annotation-processing
+            for (TypeMirror supertype : typeElement.getInterfaces()) {
+                DeclaredType declared = (DeclaredType) supertype; //you should of course check this is possible first
+                superTypeElement = declared.asElement();
             }
 
             CodeModel codeModel = new CodeModel();
             codeModel.setProductName(element.getSimpleName().toString());
             codeModel.setPackageElement((PackageElement) element.getEnclosingElement());
             codeModels.add(codeModel);
-            //generatedCode(element);
+
         }
         generatedCode();
 
@@ -126,22 +137,21 @@ public class MilkTeaProcessor2 extends AbstractProcessor {
 
     private void generatedCode() {
         try {
-            String builderName = "MilkTeaFactory";
-            builderClass = processingEnv.getFiler().createSourceFile(builderName);
+            String className = "";
+            if (superTypeElement != null) {
+                className = superTypeElement.getSimpleName() + "Factory";
+            }
+            builderClass = processingEnv.getFiler().createSourceFile(className);
             bufferedWriter = new BufferedWriter(builderClass.openWriter());
-            bufferedWriter.append("package ");
-            bufferedWriter.append(packageElement.getQualifiedName().toString());
-            bufferedWriter.append(";");
-            bufferedWriter.newLine();
-            bufferedWriter.newLine();
-            bufferedWriter.append("public class ");
-            bufferedWriter.append(builderName);
-            bufferedWriter.append("{");
 
+            //导包
+            importPackage();
+            //创建类行
+            createClassType(className);
             //添加方法
             createByName();
-            bufferedWriter.newLine();
             createByClass();
+            //
 
             bufferedWriter.newLine();
             bufferedWriter.append("}");
@@ -152,11 +162,33 @@ public class MilkTeaProcessor2 extends AbstractProcessor {
         }
     }
 
+    private void createClassType(String builderName) throws IOException {
+        bufferedWriter.newLine();
+        bufferedWriter.newLine();
+        bufferedWriter.append("public class ");
+        bufferedWriter.append(builderName);
+        bufferedWriter.append("{");
+    }
+
+    private void importPackage() throws IOException {
+        bufferedWriter.append("package ");
+        bufferedWriter.append(packageElement.getQualifiedName().toString());
+        bufferedWriter.append(";");
+
+        bufferedWriter.newLine();
+        bufferedWriter.newLine();
+        for (int i = 0; i <codeModels.size() ; i++) {
+            bufferedWriter.append("import "+codeModels.get(i).getPackageElement()+"."+codeModels.get(i).getProductName()+";");
+            bufferedWriter.newLine();
+        }
+
+    }
+
     private void createByName() throws IOException {
         //createByName()方法
         newLineOneTab();
         bufferedWriter.append("public static ");
-        bufferedWriter.append(MilkTea.class.getSimpleName());
+        bufferedWriter.append(superTypeElement.getSimpleName());
         bufferedWriter.append(" ");
         bufferedWriter.append("createByName(String name){");
         newLineTwoTab();
@@ -184,11 +216,12 @@ public class MilkTeaProcessor2 extends AbstractProcessor {
 
     private void createByClass() throws IOException {
         //createByName()方法
+        bufferedWriter.newLine();
         newLineOneTab();
         bufferedWriter.append("public static ");
-        bufferedWriter.append(MilkTea.class.getSimpleName());
+        bufferedWriter.append(superTypeElement.getSimpleName());
         bufferedWriter.append(" ");
-        bufferedWriter.append("createByName(Class<? extends MilkTea> clazz){");
+        bufferedWriter.append("createByClass(Class<? extends " + superTypeElement.getSimpleName() + "> clazz){");
         newLineTwoTab();
         bufferedWriter.append("if (clazz==null){");
         newLineThreeTab();
@@ -198,7 +231,7 @@ public class MilkTeaProcessor2 extends AbstractProcessor {
         //主代码
         for (int i = 0; i < codeModels.size(); i++) {
             newLineTwoTab();
-            bufferedWriter.append("if(clazz.equals("+codeModels.get(i).getProductName()+".class)){");
+            bufferedWriter.append("if(clazz.equals(" + codeModels.get(i).getProductName() + ".class)){");
             newLineThreeTab();
             bufferedWriter.append("return new " + codeModels.get(i).getProductName() + "();");
             newLineTwoTab();

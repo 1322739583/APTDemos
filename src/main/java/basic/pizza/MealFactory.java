@@ -1,5 +1,6 @@
 package basic.pizza;
 
+import basic.milktea.model.MilkTea;
 import basic.pizza.model.CalzonePizza;
 import basic.pizza.model.MargheritaPizza;
 import basic.pizza.model.Meal;
@@ -8,7 +9,7 @@ import basic.pizza.model.Tiramisu;
 
 public class MealFactory {
 
-    public Meal create(String id) {
+    public MilkTea create(String id) {
         if (id == null) {
             throw new IllegalArgumentException("id is null!");
         }

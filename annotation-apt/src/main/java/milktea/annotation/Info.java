@@ -6,10 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Factory设计模式
+ * 用于测试Processor所有方法的复杂例子，见FlexModel类
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
-public @interface Factory {
-    String name() default "";
+public @interface Info {
 }

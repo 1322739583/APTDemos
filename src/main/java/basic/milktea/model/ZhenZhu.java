@@ -6,7 +6,7 @@ import milktea.annotation.Factory;
 /**
  * 珍珠奶茶
  */
-@Factory(name = "ZhenZhu")
+@Factory()
 public class ZhenZhu implements MilkTea {
     @Override
     public double price() {

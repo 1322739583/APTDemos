@@ -2,6 +2,7 @@ package basic.pizza;
 
 
 
+import basic.milktea.model.MilkTea;
 import basic.pizza.model.CalzonePizza;
 import basic.pizza.model.MargheritaPizza;
 import basic.pizza.model.Meal;
@@ -11,7 +12,7 @@ import java.util.Scanner;
 
 public class PizzaStore {
 
-    public Meal order(String mealName) {
+    public MilkTea order(String mealName) {
         if (null == mealName) {
             throw new IllegalArgumentException("name of meal is null!");
         }
@@ -40,8 +41,8 @@ public class PizzaStore {
     public static void main(String[] args) {
         System.out.println("welcome to pizza store");
         PizzaStore pizzaStore = new PizzaStore();
-        Meal meal = pizzaStore.order(readConsole());
-        System.out.println("Bill:$" + meal.getPrice());
+        MilkTea meal = pizzaStore.order(readConsole());
+        System.out.println("Bill:$" + meal.price());
 
     }
 }

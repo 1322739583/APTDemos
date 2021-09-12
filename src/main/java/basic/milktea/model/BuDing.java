@@ -1,12 +1,13 @@
 package basic.milktea.model;
 
 
+import milktea.annotation.Builder;
 import milktea.annotation.Factory;
 
 /**
  * 布丁奶茶
  */
-@Factory(name = "BuDing")
+@Factory()
 public class BuDing implements  MilkTea {
     @Override
     public double price() {

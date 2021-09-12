@@ -6,10 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Factory设计模式
+ * Builder是否必选属性
  */
 @Retention(RetentionPolicy.CLASS)
-@Target(ElementType.TYPE)
-public @interface Factory {
-    String name() default "";
+@Target(ElementType.FIELD)
+public @interface Must {
+
 }

@@ -1,12 +1,14 @@
 package basic.pizza.model;
 
-import basic.pizza.annotation.Factory;
 
+import basic.milktea.model.MilkTea;
+import milktea.annotation.Factory;
 
-@Factory(type=CalzonePizza.class, id="Calzone")
-public class CalzonePizza implements Meal {
+@Factory()
+public class CalzonePizza implements MilkTea {
+
     @Override
-    public float getPrice() {
-        return 8.5f;
+    public double price() {
+        return 7.7;
     }
 }
